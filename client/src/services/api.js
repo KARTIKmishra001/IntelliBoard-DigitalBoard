@@ -13,11 +13,13 @@ api.interceptors.request.use((config) => {
   return config;
 });
 
-// Handle 401 globally
+// Handle expired/invalid sessions — skip auth endpoints so login errors stay visible
 api.interceptors.response.use(
   (res) => res,
   (error) => {
-    if (error.response?.status === 401) {
+    const url = error.config?.url || '';
+    const isAuthAttempt = url.includes('/auth/login') || url.includes('/auth/register');
+    if (error.response?.status === 401 && !isAuthAttempt) {
       localStorage.removeItem('ib_token');
       localStorage.removeItem('ib_user');
       window.location.href = '/login';
